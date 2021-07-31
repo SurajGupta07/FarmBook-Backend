@@ -6,7 +6,8 @@ const app = express();
 app.use(cors());
 
 const connectDB = require('./db/db.connect');
-const authRouter = require('./routes/authRoute.js')
+const authRouter = require('./routes/authRoute.js');
+const postRouter = require('./routes/postRoute.js');
 
 app.use(bodyParser.json());
 
@@ -16,6 +17,7 @@ connectDB();
 
 //Routes
 app.use(authRouter);
+app.use("/post", postRouter);
 
 app.get('/', (req, res) => {
   res.json({
