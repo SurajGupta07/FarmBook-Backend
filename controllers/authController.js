@@ -62,18 +62,22 @@ module.exports.loginAndSendUserData = async (req, res) => {
 }
 
 module.exports.getLoggedInUserData = async (req, res, next) => {
-  catchError(next, async () => {
+    try{
+    console.log(req.userId, 'userId')
     const user = await User.findById(req.userId);
     if (user) {
       return res.json({
         user: _.pick(user, ["_id", "name", "email", "username", "bio", "profileURL", "followingList", "followersList"])
       });
     }
+    }
+    catch(err){
+    console.log(err)
     return res.json({
       success: false,
       message: "User not found!"
     });
-  });
+    }
 }
 
 module.exports.getUserData = async (req, res, next) => {

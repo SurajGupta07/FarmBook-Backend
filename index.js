@@ -8,16 +8,13 @@ app.use(cors());
 const connectDB = require('./db/db.connect');
 const authRouter = require('./routes/authRoute.js');
 const postRouter = require('./routes/postRoute.js');
+const feedRouter = require('./routes/feedRoute.js');
 
 app.use(bodyParser.json());
 
 const PORT = 3000;
 
 connectDB();
-
-//Routes
-app.use(authRouter);
-app.use("/post", postRouter);
 
 app.get('/', (req, res) => {
   res.json({
@@ -26,6 +23,10 @@ app.get('/', (req, res) => {
   });
 });
 
+//Routes
+app.use(authRouter);
+app.use("/feed", feedRouter);
+app.use("/post", postRouter);
 
 app.listen(PORT, () => {
   console.log('Server started');
