@@ -24,8 +24,8 @@ app.get('/', (req, res) => {
 });
 
 //Routes
-app.use(authRouter);
 app.use("/feed", feedRouter);
+app.use(authRouter);
 app.use("/post", postRouter);
 
 app.listen(PORT, () => {

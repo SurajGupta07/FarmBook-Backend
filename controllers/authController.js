@@ -63,7 +63,6 @@ module.exports.loginAndSendUserData = async (req, res) => {
 
 module.exports.getLoggedInUserData = async (req, res, next) => {
     try{
-    console.log(req.userId, 'userId')
     const user = await User.findById(req.userId);
     if (user) {
       return res.json({

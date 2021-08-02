@@ -1,5 +1,6 @@
 const { Post, UsersPost } = require("../models/post.model")
-
+const { User } = require("../models/user.model")
+ 
 var getArrayOfUniqueIds = (arr, id) => {
   if (arr.some(val => val.toString() === id)) {
     return arr;
@@ -10,14 +11,17 @@ var getArrayOfUniqueIds = (arr, id) => {
 const creatNewPost = async (req, res, next) => {
     try{
       const { post } = req.body;
+      let userId = post.owner;
       let newPost = new Post(post);
       newPost = await newPost.save();
-      let user = await UsersPost.findById(req.userId);
+      console.log(userId)
+      let user = await UsersPost.findById(userId);
+      console.log(user, 'user')
       if (user) {
         user = _.extend(user, { postList: getArrayOfUniqueIds(user.postList, newPost._id) }); 
       }
       else {
-        user = new UsersPost({ _id: req.userId, postList: [newPost._id] }) 
+        user = new UsersPost({ _id: userId, postList: [newPost._id] }) 
       }
       newPost = await newPost.populate({
         path: "owner",
