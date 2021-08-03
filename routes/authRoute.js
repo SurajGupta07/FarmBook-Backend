@@ -1,6 +1,10 @@
-const { Router } = require('express');
+const {
+  Router
+} = require('express');
 const router = Router();
-const { requireAuth } = require('../middlewares/auth-middleware.js');
+const {
+  requireAuth
+} = require('../middlewares/auth-middleware.js');
 const authController = require("../controllers/authController");
 
 let {
@@ -10,7 +14,9 @@ let {
   getUserData,
   updateUserData,
   getUsersNetwork,
-  getFollowSuggestions
+  getFollowSuggestions,
+  addNewFollowing,
+  removeFollowing
 } = authController;
 
 router.route('/signup')
@@ -32,6 +38,12 @@ router.route("/network/:username")
   .get(requireAuth, getUsersNetwork)
 
 router.route("/getall")
-  .get(getFollowSuggestions)
+  .get(requireAuth, getFollowSuggestions)
+
+router.route("/follow")
+  .post(requireAuth, addNewFollowing)
+
+router.route("/follow")
+  .post(requireAuth, removeFollowing)
 
 module.exports = router;

@@ -7,11 +7,16 @@ const requireAuth = async (req, res, next) => {
     const decoded = jwt.verify(token, mySecret);
     req.userId = decoded._id;
     return next();
-  }
-  catch (err) {
-    console.log({ err });
-    res.status(401).json({ message: "Unauthorised access, please add the token"})
+  } catch (err) {
+    console.log({
+      err
+    });
+    res.status(401).json({
+      message: "Unauthorised access, please add the token"
+    })
   }
 }
 
-module.exports = { requireAuth }
+module.exports = {
+  requireAuth
+}

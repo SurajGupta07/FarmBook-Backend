@@ -24,14 +24,6 @@ const handleErrors = (err) => {
     return errors;
 }
 
-const catchError = async (next, callback) => {
-    try {
-        await callback();
-    } catch (err) {
-        next(err);
-    }
-}
-
 const createToken = (id) => {
     return jwt.sign({
         id
@@ -40,7 +32,15 @@ const createToken = (id) => {
     })
 }
 
+const getArrayOfUniqueIds = (arr, id) => {
+    if (arr.some(val => val.toString() === id)) {
+        return arr;
+    }
+    return arr.concat(id)
+}
+
 module.exports = {
     handleErrors,
-    createToken
+    createToken,
+    getArrayOfUniqueIds
 };
