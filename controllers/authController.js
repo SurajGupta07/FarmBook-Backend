@@ -48,7 +48,8 @@ module.exports.loginAndSendUserData = async (req, res) => {
 
 module.exports.getLoggedInUserData = async (req, res) => {
   try {
-    const user = await User.find(req.userId);
+    let _id = req.body
+    const user = await User.findById(_id);
     if (user) {
       return res.json({
         success: true,
@@ -56,7 +57,7 @@ module.exports.getLoggedInUserData = async (req, res) => {
       })
     }
   } catch (err) {
-    console.log(err)
+    console.log(err)  
     return res.json({
       success: false,
       message: 'User not found'
@@ -66,18 +67,9 @@ module.exports.getLoggedInUserData = async (req, res) => {
 
 module.exports.getUserData = async (req, res) => {
   try {
-    const {
-      username
-    } = req.params;
-    const user = await User.find({
-      username
-    })
-    if (user) {
-      return res.json({
-        success: true,
-        user: _.pick(user[0], ["_id", "name", "email", "username", "bio", "profileURL", "followingList", "followersList"])
-      })
-    }
+    const {username} = req.params;
+    const userDetails = await User.findOne({ username });
+    res.status(200).json({ success: true, userDetails });
   } catch (err) {
     console.log(err)
     return res.json({
@@ -151,7 +143,6 @@ module.exports.getFollowSuggestions = (async (req, res) => {
     const users = await User.find({}).sort({
       createdAt: 'desc'
     }).limit(5)
-    console.log(users)
     res.json({
       users
     })
@@ -169,9 +160,7 @@ module.exports.addNewFollowing = async (req, res, next) => {
     const {
       userId
     } = req.body;
-    console.log(userId)
     let followingUser = await User.findById(req.userId);
-    console.log(followingUser, 'following User')
     if (followingUser) {
       followingUser = _.extend(followingUser, {
         followingList: _.union(followingUser.followingList, [userId])

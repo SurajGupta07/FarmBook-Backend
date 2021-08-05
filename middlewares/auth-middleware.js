@@ -5,7 +5,7 @@ const requireAuth = async (req, res, next) => {
   const token = req.headers.authorization;
   try {
     const decoded = jwt.verify(token, mySecret);
-    req.userId = decoded._id;
+    req.userId = decoded.id;
     return next();
   } catch (err) {
     console.log({

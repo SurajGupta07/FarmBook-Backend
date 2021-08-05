@@ -1,8 +1,10 @@
 const _ = require("lodash");
 const {
     Post,
-    UserPost
 } = require("../models/post.model")
+const {
+    User,
+} = require("../models/user.model")
 const {
     Notification,
     UserNotification
@@ -13,59 +15,47 @@ const {
 
 const createNewPost = async (req, res) => {
     try {
-        const {
-            post
-        } = req.body;
-        let newPost = new Post(post);
-        newPost = await newPost.save();
-        let user = await UserPost.findById(req.userId);
-        if (user) {
-            user = _.extend(user, {
-                postList: getArrayOfUniqueIds(user.postList, newPost._id)
-            });
-            await user.save();
-        } else {
-            user = new UserPost({
-                _id: req.userId,
-                postList: [newPost._id]
-            })
-            await user.save();
-        }
-        newPost = await newPost.populate({
-            path: "author",
-            select: "_id name username profileURL"
-        }).execPopulate();
+    const {post, userId} = req.body;
 
-        return res.json({
-            success: true,
-            newPost
-        })
-    } catch (err) {
-        console.log(err)
-        res.json({
-            success: false,
-            message: 'Unable to create new post'
-        })
-    }
+    const newPost = new Post({
+      userId,
+      content: post.content
+    });
+
+    await newPost.save();
+    const postPopulated = await newPost
+      .populate({
+        path: "userId",
+        select: "name username bio profileURL",
+      })
+      .execPopulate();
+
+    res.status(200).json({ success: true, post: postPopulated });
+  } catch (error) {
+    console.log(error.message);
+    res.status(500).json({
+      success: false,
+      message: "add post error",
+      errorMessage: error.message,
+    });
+  }
 }
 
 const getAllPosts = async (req, res) => {
     try {
-        const id = req.userId;
-        const postList = await Post.find({
-            author: id
-        });
-        return res.json({
-            success: true,
-            postList
-        })
-    } catch (err) {
-        console.log(err)
-        res.json({
-            success: false,
-            message: 'Unable to fetch posts'
-        })
-    }
+    const { userName } = req.params;
+    console.log(username, 'username')
+    const userId = await User.findOne({ userName }, "userId");
+    console.log(userId, 'user id')
+
+    const response = await Post.find({ userId }).populate({
+      path: "userId",
+      select: "name username bio profileURL",
+    });
+    res.status(200).json({ success: true, postList: response });
+  } catch (error) {
+    res.status(500).json({ success: false, errorMessage: error.message });
+  }
 }
 
 const deletePost = async (req, res) => {

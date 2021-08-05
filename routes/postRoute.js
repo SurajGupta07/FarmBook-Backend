@@ -13,11 +13,11 @@ const {
     reactToPost
 } = require("../controllers/postController");
 
-router.route("/")
-    .post(requireAuth, createNewPost)
-
-router.route("/getall")
+router.route("/user/:username")
     .get(requireAuth, getAllPosts)
+
+router.route("/")
+    .post(createNewPost)
 
 router.route("/:id")
     .delete(requireAuth, deletePost)

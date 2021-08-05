@@ -25,6 +25,9 @@ router.route('/signup')
 router.route('/login')
   .post(loginAndSendUserData);
 
+router.route("/getall")
+  .get(requireAuth, getFollowSuggestions)
+
 router.route('/')
   .get(requireAuth, getLoggedInUserData);
 
@@ -36,9 +39,6 @@ router.route("/update")
 
 router.route("/network/:username")
   .get(requireAuth, getUsersNetwork)
-
-router.route("/getall")
-  .get(requireAuth, getFollowSuggestions)
 
 router.route("/follow")
   .post(requireAuth, addNewFollowing)

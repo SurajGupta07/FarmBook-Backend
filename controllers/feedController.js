@@ -6,35 +6,29 @@ const {
     Post
 } = require('../models/post.model');
 
-const LIMIT = 5;
+const LIMIT = 20;
 
 const getFeed = async (req, res) => {
     try {
-        const user = await User.findById(req.userId);
-        let userIdList = [user._id].concat(user.followingList);
-        userIdList = userIdList.map(id => mongoose.Types.ObjectId(id));
+    const { userId } = req.userId;
+    console.log(userId)
+    const followingUsers = await User.findById(userId, "followingList").exec();
 
-        let postList = await Post.find({
-            'author': {
-                $in: userIdList
-            }
-        }).sort({
-            createdAt: 'desc'
-        }).limit(LIMIT).populate({
-            path: "author",
-            select: "_id name username profileURL"
-        }).exec()
+    const response = await Post.find({
+      userId: { $in: [...followingUsers.followingList, userId] },
+    })
+      .sort({ createdAt: -1 })
+      .populate({
+        path: "userId",
+        select: "name username bio profileURL",
+      })
+      .limit(LIMIT);
 
-        res.json({
-            success: true,
-            postList,
-        })
-    } catch (err) {
-        res.json({
-            success: false,
-            message: 'Not able to fetch feed'
-        })
-    }
+    res.status(200).json({ success: true, postList: response });
+  } catch (error) {
+    console.log(error.message);
+    res.status(500).json({ success: false, errorMessage: error.message });
+  }
 }
 
 module.exports = {
