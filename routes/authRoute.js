@@ -26,7 +26,7 @@ router.route('/login')
   .post(loginAndSendUserData);
 
 router.route("/getall")
-  .get(requireAuth, getFollowSuggestions)
+  .get(getFollowSuggestions)
 
 router.route('/')
   .get(requireAuth, getLoggedInUserData);
@@ -40,10 +40,10 @@ router.route("/update")
 router.route("/network/:username")
   .get(requireAuth, getUsersNetwork)
 
-router.route("/follow")
+router.route("/follow/new") 
   .post(requireAuth, addNewFollowing)
 
-router.route("/follow")
+router.route("/follow/remove")
   .post(requireAuth, removeFollowing)
 
 module.exports = router;

@@ -10,12 +10,11 @@ const LIMIT = 20;
 
 const getFeed = async (req, res) => {
     try {
-    const { userId } = req.userId;
-    console.log(userId)
-    const followingUsers = await User.findById(userId, "followingList").exec();
+    let _id = req.userId;
+    const followingUsers = await User.findById({_id}).exec();
 
     const response = await Post.find({
-      userId: { $in: [...followingUsers.followingList, userId] },
+      userId: { $in: [...followingUsers.followingList, _id] },
     })
       .sort({ createdAt: -1 })
       .populate({
@@ -26,7 +25,7 @@ const getFeed = async (req, res) => {
 
     res.status(200).json({ success: true, postList: response });
   } catch (error) {
-    console.log(error.message);
+    console.log(error);
     res.status(500).json({ success: false, errorMessage: error.message });
   }
 }

@@ -13,7 +13,7 @@ const {
     reactToPost
 } = require("../controllers/postController");
 
-router.route("/user/:username")
+router.route("/userpost/:username")
     .get(requireAuth, getAllPosts)
 
 router.route("/")

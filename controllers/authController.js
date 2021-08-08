@@ -1,5 +1,5 @@
 const _ = require('lodash');
-const User = require('../models/user.model');
+const {User} = require('../models/user.model');
 const jwt = require('jsonwebtoken');
 const {
   handleErrors,
@@ -48,12 +48,12 @@ module.exports.loginAndSendUserData = async (req, res) => {
 
 module.exports.getLoggedInUserData = async (req, res) => {
   try {
-    let _id = req.body
-    const user = await User.findById(_id);
+    const user = await User.findById(req.userId);
+    const token = createToken(user._id);
     if (user) {
       return res.json({
         success: true,
-        user
+        token
       })
     }
   } catch (err) {
@@ -157,89 +157,30 @@ module.exports.getFollowSuggestions = (async (req, res) => {
 
 module.exports.addNewFollowing = async (req, res, next) => {
   try {
-    const {
-      userId
-    } = req.body;
-    let followingUser = await User.findById(req.userId);
-    if (followingUser) {
-      followingUser = _.extend(followingUser, {
-        followingList: _.union(followingUser.followingList, [userId])
-      });
-      await followingUser.save();
-
-      let followedUser = await User.findById(userId);
-      followedUser = _.extend(followedUser, {
-        followersList: _.union(followedUser.followersList, [req.userId])
-      });
-      await followedUser.save();
-
-      const isAlreadyFollowed = await Notification.exists({
-        action: "FOLLOWED",
-        actionCreatorId: req.userId
-      });
-
-      if (!isAlreadyFollowed) {
-        let notification = new Notification({
-          userId: followedUser._id,
-          action: "FOLLOWED",
-          actionCreatorId: req.userId,
-          username: "",
-          isRead: false
-        });
-
-        notification = await notification.save();
-
-        let userNotificationList = await UserNotification.findById(followedUser._id);
-
-        if (userNotificationList) {
-          userNotificationList = _.extend(userNotificationList, {
-            notificationList: _.concat(userNotificationList.notificationList, notification._id)
-          })
-          await userNotificationList.save();
-        } else {
-          userNotificationList = new UserNotification({
-            _id: followedUser._id,
-            notificationList: [notification._id]
-          })
-          await userNotificationList.save();
-        }
-      }
-
-      return res.json({
-        success: true,
-        followedUserId: followedUser._id,
-      });
-    }
-  } catch (err) {
-    return res.json({
-      success: false,
-      message: "User not found!"
-    });
+    const { username } = req.body;
+    const user = await User.findById(req.userId);
+    const followingUser = await User.findOne({username});
+    user.followingList.push(username);
+    followingUser.followersList.push(req.userId);
+    await followingUser.save();
+    await user.save();
+    res.status(200).json({ success: true });
+  } catch (error) {
+    res.status(500).json({ success: false, errorMessage: error.message });
   }
 }
 
 module.exports.removeFollowing = async (req, res, next) => {
   try {
-    const {
-      userId
-    } = req.body;
-    let unFollowingUser = await User.findById(req.userId);
-    if (unFollowingUser) {
-      unFollowingUser = _.extend(unFollowingUser, {
-        followingList: _.filter(unFollowingUser.followingList, (id) => id.toString() !== userId)
-      });
-      await unFollowingUser.save();
-
-      let unFollowedUser = await User.findById(userId);
-      unFollowedUser = _.extend(unFollowedUser, {
-        followersList: _.filter(unFollowedUser.followersList, (id) => id.toString() !== req.userId)
-      });
-      await unFollowedUser.save();
-      return res.json({
-        success: true,
-        unFollowedUserId: unFollowedUser._id
-      });
-    }
+    const { userId } = req.userId;
+    const body = req.body;
+    const user = await User.findById(userId);
+    const followingUser = await User.findById(body._id);
+    user.followingList.pull(body._id);
+    followingUser.followersList.pull(userId);
+    await followingUser.save();
+    await user.save();
+    res.status(200).json({ success: true });
   } catch (err) {
     console.log(err)
     return res.json({

@@ -4,21 +4,15 @@ const {
 
 const getNotifications = async (req, res) => {
     try {
-        const notificationList = await UserNotification.findById(req.userId).populate({
-            path: "notificationList",
-            populate: {
-                path: "actionCreatorId",
-                select: "_id name username"
-            }
-        });
+    const notificationList = await Notification.find({ reciever: req.userId })
+      .populate({ path: "sender ", select: "username name profileURL" })
+      .populate({ path: "postId", select: "content" });
 
-        res.json({
-            success: true,
-            notificationList
-        })
-    } catch (err) {
-        console.log(err)
-    }
+    res.status(200).json({ success: true, notificationList });
+  } catch (error) {
+    console.error(log);
+    res.status(500).json({ success: false, error});
+  }
 }
 
 module.exports = {
