@@ -12,10 +12,10 @@ const {
 const createNewPost = async (req, res) => {
     try {
     const {post, userId} = req.body;
-
     const newPost = new Post({
       userId,
-      content: post.content
+      content: post.content,
+      postImage: post.imageURL
     });
 
     await newPost.save();

@@ -10,6 +10,9 @@ const postSchema = mongoose.Schema({
         trim: true,
         maxLen: 200
     },
+    postImage: {
+      type: String,
+    },
     likedBy: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User'
