@@ -41,7 +41,7 @@ router.route("/network/:username")
   .get(requireAuth, getUsersNetwork)
 
 router.route("/follow/new") 
-  .post(requireAuth, addNewFollowing)
+  .post(addNewFollowing)
 
 router.route("/follow/remove")
   .post(requireAuth, removeFollowing)

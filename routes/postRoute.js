@@ -10,22 +10,22 @@ const {
     getAllPosts,
     deletePost,
     likeUserPost,
-    reactToPost
+    unlikeUserPost
 } = require("../controllers/postController");
 
 router.route("/userpost/:username")
-    .get(requireAuth, getAllPosts)
+  .get(requireAuth, getAllPosts)
 
 router.route("/")
-    .post(createNewPost)
+  .post(createNewPost)
 
 router.route("/:id")
-    .delete(requireAuth, deletePost)
+  .delete(requireAuth, deletePost)
 
-router.route("/like/:id")
-    .post(requireAuth, likeUserPost)
+router.route("/like/:postId")
+  .put(likeUserPost)
 
-router.route("/react/:id")
-    .post(requireAuth, reactToPost)
+router.route("/unlike/:postId")
+  .post(unlikeUserPost)
 
 module.exports = router;

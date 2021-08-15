@@ -157,16 +157,18 @@ module.exports.getFollowSuggestions = (async (req, res) => {
 
 module.exports.addNewFollowing = async (req, res, next) => {
   try {
-    const { username } = req.body;
-    const user = await User.findById(req.userId);
-    const followingUser = await User.findOne({username});
-    user.followingList.push(username);
-    followingUser.followersList.push(req.userId);
+    const { userId, username } = req.body;
+    const user = await User.findById(userId);
+    const followingUser = await User.findOne({username}, '_id');
+    console.log(followingUser, 'user id')
+    user.followingList.push(username, '_id');
+    followingUser.followersList.push(userId);
     await followingUser.save();
     await user.save();
     res.status(200).json({ success: true });
   } catch (error) {
-    res.status(500).json({ success: false, errorMessage: error.message });
+    console.log(error)
+    res.status(500).json({ success: false, error });
   }
 }
 

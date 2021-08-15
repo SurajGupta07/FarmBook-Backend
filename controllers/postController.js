@@ -6,10 +6,6 @@ const {
     User,
 } = require("../models/user.model")
 const {
-    Notification,
-    UserNotification
-} = require("../models/notification.model")
-const {
     getArrayOfUniqueIds
 } = require('../utils')
 
@@ -77,83 +73,37 @@ const deletePost = async (req, res) => {
 const likeUserPost = async (req, res) => {
     try {
     const { postId } = req.params;
-    const post = await Post.findById(postId);
-    post.likedBy.push(req.userId);
-    await post.save();
-    res.status(200).json({ success: true, postId });
+    const { userId } = req.body;
+    const post = await Post.findByIdAndUpdate(postId, {
+      $push: {likedBy: userId}
+    }, {
+      new: true
+    }).populate("likedBy", "username").exec();
+    res.status(200).json({ success: true, post });
   } catch (error) {
     console.error(error);
     res.status(500).json({ success: false, errorMessage: error.message });
   }
 }
 
-const reactToPost = async (req, res) => {
-    try {
-        const {
-            id
-        } = req.params;
-        const type = req.query.type;
-        let post = await Post.findById(id);
-        const updateReactions = _.extend(post.reactions, {
-            [type]: getArrayOfUniqueIds(post.reactions[type], req.userId)
-        });
-        post = _.extend(post, {
-            reactions: updateReactions
-        })
-        post = await post.save();
-
-        const isAlreadyReacted = await Notification.exists({
-            action: "REACTED",
-            postId: post._id,
-            actionCreatorId: req.userId
-        });
-
-        if (!isAlreadyReacted) {
-            let notification = new Notification({
-                userId: post.author,
-                action: "REACTED",
-                actionCreatorId: req.userId,
-                postId: post._id,
-                username: "",
-                hasSeen: false
-            });
-            notification = await notification.save();
-
-            let userNotificationList = await UserNotification.findById(post.author);
-
-            if (userNotificationList) {
-                userNotificationList = _.extend(userNotificationList, {
-                    notificationList: _.concat(userNotificationList.notificationList, notification._id)
-                })
-                await userNotificationList.save();
-            } else {
-                userNotificationList = new UserNotification({
-                    _id: post.author,
-                    notificationList: [notification._id]
-                })
-                await userNotificationList.save();
-            }
-        }
-
-        return res.json({
-            success: true,
-            reactions: post.reactions,
-            postId: id,
-        })
-    } catch (err) {
-        console.log(err)
-        res.json({
-            success: false,
-            message: 'Unable to create post'
-        })
-    }
+const unlikeUserPost = async (req, res) => {
+  try{
+    const { userId } = req.body;
+    const { postId } = req.params;
+    const post = await Post.findById(postId);
+    post.likedBy.pull(userId);
+    await post.save();
+    res.status(200).json({ success: true, userId, postId });
+  } catch (err) {
+    console.log({err})
+    res.json({err})
+  }
 }
-
 
 module.exports = {
     createNewPost,
     getAllPosts,
     deletePost,
     likeUserPost,
-    reactToPost
+    unlikeUserPost
 }
