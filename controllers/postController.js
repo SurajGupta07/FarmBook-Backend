@@ -41,7 +41,7 @@ const getAllPosts = async (req, res) => {
     try {
       const {username} = req.params;
       const userId = await User.findOne({username}, '_id')
-      const posts = await Post.find({userId})  
+      const posts = await Post.find({userId}).sort("-createdAt")  
       res.json({
         success:true,
         posts
@@ -93,7 +93,7 @@ const unlikeUserPost = async (req, res) => {
     const post = await Post.findById(postId);
     post.likedBy.pull(userId);
     await post.save();
-    res.status(200).json({ success: true, userId, postId });
+    res.status(200).json({ success: true, userId, post });
   } catch (err) {
     console.log({err})
     res.json({err})

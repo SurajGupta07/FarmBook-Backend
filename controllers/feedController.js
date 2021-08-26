@@ -16,11 +16,11 @@ const getFeed = async (req, res) => {
     const response = await Post.find({
       userId: { $in: [...followingUsers.followingList, _id] },
     })
-      .sort({ createdAt: -1 })
       .populate({
         path: "userId",
         select: "name username bio profileURL",
       })
+      .sort("-createdAt")
       .limit(LIMIT);
 
     res.status(200).json({ success: true, postList: response });

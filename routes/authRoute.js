@@ -44,6 +44,6 @@ router.route("/follow/new")
   .post(addNewFollowing)
 
 router.route("/follow/remove")
-  .post(requireAuth, removeFollowing)
+  .post(removeFollowing)
 
 module.exports = router;

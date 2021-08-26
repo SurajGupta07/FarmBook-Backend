@@ -173,15 +173,15 @@ module.exports.addNewFollowing = async (req, res, next) => {
 
 module.exports.removeFollowing = async (req, res, next) => {
   try {
-    const { userId } = req.userId;
-    const body = req.body;
-    const user = await User.findById(userId);
-    const followingUser = await User.findById(body._id);
-    user.followingList.pull(body._id);
-    followingUser.followersList.pull(userId);
-    await followingUser.save();
-    await user.save();
-    res.status(200).json({ success: true });
+    const { userId, followUserId } = req.body;
+    console.log(userId, followUserId)
+    const mainUser = await User.findByIdAndUpdate(userId, {
+      $pull: {followingList: followUserId}
+      },{new: true});
+    const followUser = await User.findByIdAndUpdate(followUserId, {
+      $pull: {followersList: userId}
+    },{new: true});
+    res.status(200).json({ success: true, mainUser, followUser });
   } catch (err) {
     console.log(err)
     return res.json({
