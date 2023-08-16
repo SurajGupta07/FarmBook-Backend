@@ -1,145 +1,192 @@
 const _ = require('lodash');
-const User = require('../models/user.model.js');
-const mySecret = process.env['secret']
+const {User} = require('../models/user.model');
 const jwt = require('jsonwebtoken');
-
-//Handle Errors
-
-const handleErrors = (err) => {
-  let errors = {email: '', password: ''}
-
-  if(err.code === 11000) {
-    errors.email = 'Email already exists'
-    return errors;
-  }
-
-  if(err.message.includes('User validation failed')){
-    Object.values(err.errors).forEach(({properties}) => {
-      errors[properties.path] = properties.message; 
-    })
-  }
-  return errors;
-}
-
-const catchError = async (next, callback) => {
-  try {
-    await callback();
-  }
-  catch (err) {
-    next(err);
-  }
-}
-
-const createToken = (id) => {
-  return jwt.sign({ id }, mySecret, { expiresIn: "24h" })
-}
+const {
+  handleErrors,
+  createToken
+} = require('../utils')
 
 module.exports.signupAndSendUserData = async (req, res) => {
-  let { user } = req.body;
-  try{
-    const userData = await User.create( user )
+  let {
+    user
+  } = req.body;
+  try {
+    const userData = await User.create(user)
     const token = createToken(userData._id)
-    res.status(201).json({userData, token})
-  }
-  catch(err) {
+    res.status(201).json({
+      userData,
+      token
+    })
+  } catch (err) {
     console.log(err)
     const errors = handleErrors(err)
-    res.status(400).json({errors})
+    res.status(400).json({
+      errors
+    })
   }
 }
 
 module.exports.loginAndSendUserData = async (req, res) => {
- let { email, password } = req.body;
+  let {
+    email,
+    password
+  } = req.body;
   try {
     const user = await User.login(email, password)
     const token = createToken(user._id);
-    res.status(201).json({user, token})
-  }
-  catch (err) {
+    res.status(201).json({
+      user,
+      token
+    })
+  } catch (err) {
     const errors = handleErrors(err)
-    res.status(400).json({ errors })
+    res.status(400).json({
+      errors
+    })
   }
 }
 
-module.exports.getLoggedInUserData = async (req, res, next) => {
-    try{
+module.exports.getLoggedInUserData = async (req, res) => {
+  try {
     const user = await User.findById(req.userId);
+    const token = createToken(user._id);
     if (user) {
       return res.json({
-        user: _.pick(user, ["_id", "name", "email", "username", "bio", "profileURL", "followingList", "followersList"])
-      });
+        success: true,
+        token
+      })
     }
-    }
-    catch(err){
+  } catch (err) {
+    console.log(err)  
+    return res.json({
+      success: false,
+      message: 'User not found'
+    })
+  }
+}
+
+module.exports.getUserData = async (req, res) => {
+  try {
+    const {username} = req.params;
+    const userDetails = await User.findOne({ username });
+    res.status(200).json({ success: true, userDetails });
+  } catch (err) {
     console.log(err)
     return res.json({
       success: false,
-      message: "User not found!"
-    });
-    }
-}
-
-module.exports.getUserData = async (req, res, next) => {
-  catchError(next, async () => {
-    const { userId } = req.params;
-    const user = await User.find({ userId });
-    if (user) {
-      return res.json({
-        user: _.pick(user[0], ["_id", "name", "email", "username", "bio", "profileURL", "followingList", "followersList"])
-      });
-    }
-    return res.json({
-      success: false,
-      message: "User not found!"
-    });
-  });
+      message: 'User not found'
+    })
+  }
 }
 
 module.exports.updateUserData = async (req, res, next) => {
-  catchError(next, async () => {
-    const { username, bio, profileURL } = req.params;
-    let user = await User.find({ username, bio, profileURL });
+  try {
+    const {
+      bio,
+      profileURL
+    } = req.body;
+    var user = User.findById(req.userId)
     if (user) {
-      user = _.extend(user, {username});
-      user = _.extend(user, { bio });
-      user = _.extend(user, { profileURL });
-      user = await user.save();
-      return res.json({
-        user: _.pick(user, ["_id", "username", "bio", "profileURL"])
+      user = _.extend(user, {
+        bio
       });
+      user = _.extend(user, {
+        profileURL
+      });
+      // user = await user.save();
+      return res.json({
+        success: true,
+        user: _.pick(user, ["_id", "bio", "profileURL"])
+      })
     }
-    return res.json({
+    next();
+  } catch (err) {
+    console.log(err)
+    res.json({
       success: false,
-      message: "User not found!"
-    });
-  });
+      message: 'User not found'
+    })
+  }
 }
 
-
-module.exports.userNetwork = async (req, res, next) => {
-  catchError(next, async () => {
-    const {username} = req.params;
-    let user = await User.find({ username }).populate({
+module.exports.getUsersNetwork = async (req, res, next) => {
+  try {
+    const {
+      username
+    } = req.params;
+    let user = await User.find({
+      username
+    }).populate({
       path: "followingList",
       select: "_id name email username bio profileURL"
     }).populate({
       path: "followersList",
       select: "_id name email username bio profileURL"
     })
-    if(user) {
+    if (user) {
       return res.json({
+        success: true,
         user: _.pick(user[0], ["followingList", "followersList", "name", "_id", "username", "profileURL"])
-      })
+      });
     }
-    return res.json({ message: "User not found!" });
-  })
+  } catch (err) {
+    console.log(err)
+    res.json({
+      success: false,
+      message: 'User not found'
+    })
+  }
 }
 
-module.exports.getFollowSuggestions = (async (req, res, next) => {
-   try{
-    const users = await User.find()
-    res.json({users})
-  } catch ( err ){
-    res.status(500).json({success: false, message: "Unable to get products", errorMessage: err.message})
+module.exports.getFollowSuggestions = (async (req, res) => {
+  try {
+    const users = await User.find({}).sort({
+      createdAt: 'desc'
+    }).limit(5)
+    res.json({
+      users
+    })
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: "Unable to get products",
+      errorMessage: err.message
+    })
   }
 })
+
+module.exports.addNewFollowing = async (req, res, next) => {
+  try {
+    const { userId, followUserId } = req.body;
+    const mainUser = await User.findByIdAndUpdate(userId, {
+      $push: {followingList: followUserId}
+      },{new: true});
+    const followUser = await User.findByIdAndUpdate(followUserId, {
+      $push: {followersList: userId}
+    },{new: true});
+    res.status(200).json({ success: true, mainUser, followUser });
+  } catch (error) {
+    console.log(error)
+    res.status(500).json({ success: false, error });
+  }
+}
+
+module.exports.removeFollowing = async (req, res, next) => {
+  try {
+    const { userId, followUserId } = req.body;
+    console.log(userId, followUserId)
+    const mainUser = await User.findByIdAndUpdate(userId, {
+      $pull: {followingList: followUserId}
+      },{new: true});
+    const followUser = await User.findByIdAndUpdate(followUserId, {
+      $pull: {followersList: userId}
+    },{new: true});
+    res.status(200).json({ success: true, mainUser, followUser });
+  } catch (err) {
+    console.log(err)
+    return res.json({
+      success: false,
+      message: "User not found!"
+    });
+  }
+}
