@@ -1,10 +1,6 @@
-const {
-  Router
-} = require('express');
+const { Router } = require("express");
 const router = Router();
-const {
-  requireAuth
-} = require('../middlewares/auth-middleware.js');
+const { requireAuth } = require("../middlewares/auth-middleware.js");
 const authController = require("../controllers/authController");
 
 let {
@@ -16,34 +12,25 @@ let {
   getUsersNetwork,
   getFollowSuggestions,
   addNewFollowing,
-  removeFollowing
+  removeFollowing,
 } = authController;
 
-router.route('/signup')
-  .post(signupAndSendUserData);
+router.route("/signup").post(signupAndSendUserData);
 
-router.route('/login')
-  .post(loginAndSendUserData);
+router.route("/login").post(loginAndSendUserData);
 
-router.route("/getall")
-  .get(getFollowSuggestions)
+router.route("/getall").get(getFollowSuggestions);
 
-router.route('/')
-  .get(requireAuth, getLoggedInUserData);
+router.route("/").get(requireAuth, getLoggedInUserData);
 
-router.route('/:username')
-  .get(getUserData)
+router.route("/:username").get(getUserData);
 
-router.route("/update")
-  .post(requireAuth, updateUserData)
+router.route("/update").post(requireAuth, updateUserData);
 
-router.route("/network/:username")
-  .get(requireAuth, getUsersNetwork)
+router.route("/network/:username").get(requireAuth, getUsersNetwork);
 
-router.route("/follow/new") 
-  .post(addNewFollowing)
+router.route("/follow/new").post(addNewFollowing);
 
-router.route("/follow/remove")
-  .post(removeFollowing)
+router.route("/follow/remove").post(removeFollowing);
 
 module.exports = router;

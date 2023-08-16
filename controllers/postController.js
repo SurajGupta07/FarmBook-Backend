@@ -1,21 +1,15 @@
 const _ = require("lodash");
-const {
-    Post,
-} = require("../models/post.model")
-const {
-    User,
-} = require("../models/user.model")
-const {
-    getArrayOfUniqueIds
-} = require('../utils')
+const { Post } = require("../models/post.model");
+const { User } = require("../models/user.model");
+const { getArrayOfUniqueIds } = require("../utils");
 
 const createNewPost = async (req, res) => {
-    try {
-    const {post, userId} = req.body;
+  try {
+    const { post, userId } = req.body;
     const newPost = new Post({
       userId,
       content: post.content,
-      postImage: post.imageURL
+      postImage: post.imageURL,
     });
 
     await newPost.save();
@@ -35,59 +29,63 @@ const createNewPost = async (req, res) => {
       errorMessage: error.message,
     });
   }
-}
+};
 
 const getAllPosts = async (req, res) => {
-    try {
-      const {username} = req.params;
-      const userId = await User.findOne({username}, '_id')
-      const posts = await Post.find({userId}).sort("-createdAt")  
-      res.json({
-        success:true,
-        posts
-      })
+  try {
+    const { username } = req.params;
+    const userId = await User.findOne({ username }, "_id");
+    const posts = await Post.find({ userId }).sort("-createdAt");
+    res.json({
+      success: true,
+      posts,
+    });
   } catch (error) {
     res.status(500).json({ success: false, errorMessage: error.message });
   }
-}
+};
 
 const deletePost = async (req, res) => {
-    try {
-        const {
-            id
-        } = req.params;
-        const post = await Post.findByIdAndDelete(id);
-        return res.json({
-            success: true,
-            deletedPostId: post
-        })
-    } catch (err) {
-        res.json({
-            success: false,
-            message: 'Unable to delete post'
-        })
-        console.log(err)
-    }
-}
+  try {
+    const { id } = req.params;
+    const post = await Post.findByIdAndDelete(id);
+    return res.json({
+      success: true,
+      deletedPostId: post,
+    });
+  } catch (err) {
+    res.json({
+      success: false,
+      message: "Unable to delete post",
+    });
+    console.log(err);
+  }
+};
 
 const likeUserPost = async (req, res) => {
-    try {
+  try {
     const { postId } = req.params;
     const { userId } = req.body;
-    const post = await Post.findByIdAndUpdate(postId, {
-      $push: {likedBy: userId}
-    }, {
-      new: true
-    }).populate("likedBy", "username").exec();
+    const post = await Post.findByIdAndUpdate(
+      postId,
+      {
+        $push: { likedBy: userId },
+      },
+      {
+        new: true,
+      }
+    )
+      .populate("likedBy", "username")
+      .exec();
     res.status(200).json({ success: true, post });
   } catch (error) {
     console.error(error);
     res.status(500).json({ success: false, errorMessage: error.message });
   }
-}
+};
 
 const unlikeUserPost = async (req, res) => {
-  try{
+  try {
     const { userId } = req.body;
     const { postId } = req.params;
     const post = await Post.findById(postId);
@@ -95,15 +93,15 @@ const unlikeUserPost = async (req, res) => {
     await post.save();
     res.status(200).json({ success: true, userId, post });
   } catch (err) {
-    console.log({err})
-    res.json({err})
+    console.log({ err });
+    res.json({ err });
   }
-}
+};
 
 module.exports = {
-    createNewPost,
-    getAllPosts,
-    deletePost,
-    likeUserPost,
-    unlikeUserPost
-}
+  createNewPost,
+  getAllPosts,
+  deletePost,
+  likeUserPost,
+  unlikeUserPost,
+};

@@ -1,35 +1,31 @@
-const express = require('express');
-const bodyParser = require('body-parser');
+const express = require("express");
+const bodyParser = require("body-parser");
 const cors = require("cors");
+const path = require("path");
 
 const app = express();
 app.use(cors());
+app.use(bodyParser.json());
 
-const connectDB = require('./db/db.connect');
-const authRouter = require('./routes/authRoute');
-const postRouter = require('./routes/postRoute');
+const connectDB = require("./db/db.connect");
+const authRouter = require("./routes/authRoute");
+const postRouter = require("./routes/postRoute");
 const notificationRouter = require("./routes/notificationRoute");
 const feedRouter = require("./routes/feedRoute");
 
-app.use(bodyParser.json());
-
-const PORT = 3000;
-
 connectDB();
 
-//Routes
+// Routes
 app.use("/user", authRouter);
 app.use("/post", postRouter);
 app.use("/notification", notificationRouter);
 app.use("/feed", feedRouter);
 
-app.get('/', (req, res) => {
-  res.json({
-    success: true,
-    message: "FarmBook Backend"
-  });
-});
+// Serve static files
+app.use(express.static(path.join(__dirname, "public")));
 
-app.listen(PORT, () => {
-  console.log('Server started');
+// Start the server
+const port = process.env.PORT || 3000;
+app.listen(port, () => {
+  console.log(`Mock API Server is up and running at: http://localhost:${port}`);
 });
