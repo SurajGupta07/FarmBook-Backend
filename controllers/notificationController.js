@@ -1,5 +1,3 @@
-const { UserNotification } = require("../models/notification.model");
-
 const getNotifications = async (req, res) => {
   try {
     const notificationList = await Notification.find({ reciever: req.userId })

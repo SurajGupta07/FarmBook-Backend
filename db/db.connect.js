@@ -8,7 +8,6 @@ const connectDB = () => {
     .connect(secret, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
-      // suppress 'collection.ensureIndex is deprecated' warning
       useCreateIndex: true,
     })
     .then(() => console.log("Successfully connected to 'FarmBook' DB."))

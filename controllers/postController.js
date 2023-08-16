@@ -1,7 +1,5 @@
-const _ = require("lodash");
 const { Post } = require("../models/post.model");
 const { User } = require("../models/user.model");
-const { getArrayOfUniqueIds } = require("../utils");
 
 const createNewPost = async (req, res) => {
   try {

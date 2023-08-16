@@ -9,7 +9,7 @@ const getFeed = async (req, res) => {
     let _id = req.userId;
     const followingUsers = await User.findById({ _id }).exec();
 
-    const response = await Post.find({
+    const response = Post.find({
       userId: { $in: [...followingUsers.followingList, _id] },
     })
       .populate({
