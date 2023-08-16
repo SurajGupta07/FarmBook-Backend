@@ -1,6 +1,5 @@
 const _ = require("lodash");
 const { User } = require("../models/user.model");
-const jwt = require("jsonwebtoken");
 const { handleErrors, createToken } = require("../utils");
 
 module.exports.signupAndSendUserData = async (req, res) => {
@@ -74,7 +73,7 @@ module.exports.getUserData = async (req, res) => {
 module.exports.updateUserData = async (req, res, next) => {
   try {
     const { bio, profileURL } = req.body;
-    var user = User.findById(req.userId);
+    let user = User.findById(req.userId);
     if (user) {
       user = _.extend(user, {
         bio,
@@ -82,7 +81,6 @@ module.exports.updateUserData = async (req, res, next) => {
       user = _.extend(user, {
         profileURL,
       });
-      // user = await user.save();
       return res.json({
         success: true,
         user: _.pick(user, ["_id", "bio", "profileURL"]),
